@@ -1,0 +1,3 @@
+import{Linking}from'react-native';import{logEntry,normalisePositiveMl}from'./storage';import{refreshReminderSchedule}from'./notifications';
+export async function handleHydrateUrl(url){if(!url||!url.startsWith('hydrate://add'))return false;const p=new URL(url),ml=normalisePositiveMl(p.searchParams.get('ml'),null,1,5000);if(!ml)return false;await logEntry(ml,{vesselName:(p.searchParams.get('name')||`Quick add ${ml}ml`).slice(0,80),vesselType:'other',emoji:'💧',color:'#1E90FF',source:'manual'});await refreshReminderSchedule().catch(()=>null);return true}
+export function subscribeToHydrateLinks(){Linking.getInitialURL().then(u=>handleHydrateUrl(u).catch(()=>false));const s=Linking.addEventListener('url',({url})=>handleHydrateUrl(url).catch(()=>false));return()=>s.remove()}

@@ -1,0 +1,69 @@
+{
+  "expo": {
+    "name": "Jug Up: Water Tracker",
+    "slug": "hydrate-app",
+    "version": "1.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#BEE3F8",
+          "imageWidth": 220
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Jug Up to use your camera to scan bottle barcodes.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Jug Up to use your location to check today's weather."
+        }
+      ],
+      "expo-notifications",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-2914941028455030~2414757379",
+          "iosAppId": "ca-app-pub-2914941028455030~3792106584"
+        }
+      ]
+    ],
+    "android": {
+      "package": "com.napal.jugup",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#BEE3F8"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.napal.jugup",
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/123f279b-c2f2-485a-aa92-8f4d109e3af3"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "123f279b-c2f2-485a-aa92-8f4d109e3af3"
+      }
+    }
+  }
+}
