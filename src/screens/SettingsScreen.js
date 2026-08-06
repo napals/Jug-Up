@@ -100,6 +100,23 @@ export default function SettingsScreen({ navigation }) {
     servingMl: unitInputToMl(servingMl, unit) ?? servingMlValue,
   });
 
+  // Steps the interval by half an hour and reschedules immediately, so the
+  // notification timing updates live as you tap +/- rather than only after
+  // pressing the separate "Update reminders" button.
+  const adjustInterval = async (delta) => {
+    const current = Number.parseFloat(intervalHours) || 2;
+    const next = Math.min(12, Math.max(0.5, Math.round((current + delta) * 2) / 2));
+    const nextStr = String(next);
+    setIntervalHours(nextStr);
+    if (remindersEnabled) {
+      try {
+        await scheduleAndReport({ ...formReminderSettings(), intervalHours: nextStr });
+      } catch (_error) {
+        // stays silent here — the explicit Update button still surfaces real errors
+      }
+    }
+  };
+
   // Checked before validateReminderSettings so an out-of-range serving size
   // shows an error in the user's own unit instead of the ml-only fallback
   // message that lower-level validation returns.
@@ -301,9 +318,27 @@ export default function SettingsScreen({ navigation }) {
             </View>
 
             <Text style={styles.label}>
-              {dynamicReminders ? 'Minimum gap between reminders (1–12 hours)' : 'Remind me every 1–12 hours'}
+              {dynamicReminders ? 'Minimum gap between reminders (0.5–12 hours)' : 'Remind me every 0.5–12 hours'}
             </Text>
-            <TextInput style={styles.input} keyboardType="number-pad" value={intervalHours} onChangeText={setIntervalHours} />
+            <View style={styles.stepperRow}>
+              <TouchableOpacity
+                style={styles.stepperButton}
+                onPress={() => adjustInterval(-0.5)}
+                accessibilityRole="button"
+                accessibilityLabel="Decrease interval by half an hour"
+              >
+                <Text style={styles.stepperButtonText}>−</Text>
+              </TouchableOpacity>
+              <Text style={styles.stepperValue}>{intervalHours}h</Text>
+              <TouchableOpacity
+                style={styles.stepperButton}
+                onPress={() => adjustInterval(0.5)}
+                accessibilityRole="button"
+                accessibilityLabel="Increase interval by half an hour"
+              >
+                <Text style={styles.stepperButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
 
             {dynamicReminders && (
               <>
@@ -388,6 +423,10 @@ const makeStyles = (COLORS) => StyleSheet.create({
   header: { fontSize: 26, fontWeight: '800', color: COLORS.text, marginBottom: 20 },
   label: { fontSize: 14, fontWeight: '600', color: COLORS.textMuted, marginBottom: 8 },
   input: { backgroundColor: COLORS.card, color: COLORS.text, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18, marginBottom: 16 },
+  stepperRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20, backgroundColor: COLORS.card, borderRadius: 10, paddingVertical: 10, marginBottom: 16 },
+  stepperButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
+  stepperButtonText: { color: '#fff', fontSize: 22, fontWeight: '700', lineHeight: 24 },
+  stepperValue: { fontSize: 20, fontWeight: '700', color: COLORS.text, minWidth: 56, textAlign: 'center' },
   unitRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   unitChoice: { flex: 1, backgroundColor: COLORS.card, borderRadius: 10, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
   unitChoiceSelected: { borderColor: COLORS.primary, backgroundColor: COLORS.primary },

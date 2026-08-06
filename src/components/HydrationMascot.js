@@ -9,14 +9,24 @@ const VIEW_H = 260;
 // intentionally the exact breakpoints the artwork was generated for — the
 // mascot crossfades smoothly between the two nearest stages as the day's
 // percentage changes, rather than hard-cutting between them.
+// `percent` is the live threshold each image kicks in at.
+// `scale` is a per-stage size multiplier (1 = the shared base size below) —
+// since each image was generated independently, tweak this if one stage's
+// character reads noticeably bigger/smaller than its neighbours.
+const BASE_WIDTH_PCT = 62;
+const BASE_HEIGHT_PCT = 80;
 const STAGES = [
-  { percent: 0, image: require('../../assets/jubi/stage-00.png') },
-  { percent: 15, image: require('../../assets/jubi/stage-15.png') },
-  { percent: 30, image: require('../../assets/jubi/stage-30.png') },
-  { percent: 50, image: require('../../assets/jubi/stage-50.png') },
-  { percent: 76, image: require('../../assets/jubi/stage-76.png') },
-  { percent: 100, image: require('../../assets/jubi/stage-100.png') },
-  { percent: 101, image: require('../../assets/jubi/stage-101.png') },
+  { percent: 0, image: require('../../assets/jubi/stage-00.png'), scale: 1 },
+  { percent: 10, image: require('../../assets/jubi/stage-10.png'), scale: 1 },
+  { percent: 20, image: require('../../assets/jubi/stage-20.png'), scale: 1 },
+  { percent: 30, image: require('../../assets/jubi/stage-30.png'), scale: 1 },
+  { percent: 40, image: require('../../assets/jubi/stage-40.png'), scale: 1 },
+  { percent: 50, image: require('../../assets/jubi/stage-50.png'), scale: 1 },
+  { percent: 60, image: require('../../assets/jubi/stage-60.png'), scale: 1 },
+  { percent: 70, image: require('../../assets/jubi/stage-70.png'), scale: 1 },
+  { percent: 80, image: require('../../assets/jubi/stage-80.png'), scale: 1 },
+  { percent: 90, image: require('../../assets/jubi/stage-90.png'), scale: 1 },
+  { percent: 100, image: require('../../assets/jubi/stage-100.png'), scale: 1 },
 ];
 const MAX_STAGE_PERCENT = STAGES[STAGES.length - 1].percent;
 
@@ -207,8 +217,8 @@ export default function HydrationMascot({ percent, size = 220, themeId = 'standa
   useEffect(() => {
     Animated.timing(animatedPercent, {
       toValue: percent || 0,
-      duration: 900,
-      easing: Easing.out(Easing.cubic),
+      duration: 120,
+      easing: Easing.out(Easing.quad),
       useNativeDriver: false, // this value drives non-transform state, not a native prop
     }).start();
   }, [percent, animatedPercent]);
@@ -240,7 +250,7 @@ export default function HydrationMascot({ percent, size = 220, themeId = 'standa
   const scale = breath.interpolate({ inputRange: [0, 1], outputRange: [1, 1.025] });
   const rotate = sway.interpolate({ inputRange: [0, 1], outputRange: ['-1.2deg', '1.2deg'] });
 
-  const isOverflowing = blend.fromIndex === STAGES.length - 1 && blend.toIndex === STAGES.length - 1;
+  const isOverflowing = (percent || 0) > 100;
 
   return (
     <View pointerEvents="none" style={{ width: size, height: size * (VIEW_H / VIEW_W), alignItems: 'center', justifyContent: 'center' }}>
@@ -249,17 +259,27 @@ export default function HydrationMascot({ percent, size = 220, themeId = 'standa
           <Rect x={0} y={0} width={VIEW_W} height={VIEW_H} fill={sky} />
           <SeasonalAccents themeId={themeId} accent={accent} />
         </Svg>
-        <View style={StyleSheet.absoluteFill}>
+        <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
           <Image
             source={STAGES[blend.fromIndex].image}
             resizeMode="contain"
-            style={[StyleSheet.absoluteFill, { opacity: 1 - blend.t }]}
+            style={{
+              position: 'absolute',
+              width: `${BASE_WIDTH_PCT * STAGES[blend.fromIndex].scale}%`,
+              height: `${BASE_HEIGHT_PCT * STAGES[blend.fromIndex].scale}%`,
+              opacity: 1 - blend.t,
+            }}
           />
           {blend.toIndex !== blend.fromIndex ? (
             <Image
               source={STAGES[blend.toIndex].image}
               resizeMode="contain"
-              style={[StyleSheet.absoluteFill, { opacity: blend.t }]}
+              style={{
+                position: 'absolute',
+                width: `${BASE_WIDTH_PCT * STAGES[blend.toIndex].scale}%`,
+                height: `${BASE_HEIGHT_PCT * STAGES[blend.toIndex].scale}%`,
+                opacity: blend.t,
+              }}
             />
           ) : null}
         </View>

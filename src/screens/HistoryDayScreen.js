@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -24,6 +25,8 @@ import {
 import { refreshReminderSchedule } from '../utils/notifications';
 import { formatVolume, mlToUnitInput, unitInputToMl, unitLabel } from '../utils/units';
 import { DRINK_TYPES } from '../constants/drinkTypes';
+import { DRINK_ICONS } from '../constants/drinkIcons';
+import { PRESET_ICONS } from '../constants/presetIcons';
 
 function timeText(timestamp) {
   const date = new Date(timestamp);
@@ -264,7 +267,7 @@ export default function HistoryDayScreen({ route }) {
                   ]}
                   onPress={() => chooseCup(cup)}
                 >
-                  <Text style={styles.cupEmoji}>{cup.emoji}</Text>
+                  <Image source={PRESET_ICONS[cup.iconKey] || DRINK_ICONS[cup.drinkType] || DRINK_ICONS.water} style={styles.cupIcon} resizeMode="contain" />
                   <Text style={styles.cupName} numberOfLines={1}>{cup.name}</Text>
                   <Text style={styles.cupMl}>{formatVolume(cup.amountMl, unit)}</Text>
                   {selectedCupId === cup.id ? <Text style={styles.cupSelectedCheck}>✓</Text> : null}
@@ -309,7 +312,7 @@ export default function HistoryDayScreen({ route }) {
                       style={[styles.drinkTypeChip, drinkType === d.id && styles.drinkTypeChipSelected]}
                       onPress={() => setDrinkType(d.id)}
                     >
-                      <Text style={styles.drinkTypeEmoji}>{d.emoji}</Text>
+                      <Image source={DRINK_ICONS[d.id]} style={styles.drinkTypeIcon} resizeMode="contain" />
                       <Text style={[styles.drinkTypeLabel, drinkType === d.id && styles.drinkTypeLabelSelected]}>{d.label}</Text>
                     </TouchableOpacity>
                   ))}
@@ -368,13 +371,13 @@ const makeStyles = (COLORS) => StyleSheet.create({
   drinkTypeStrip: { gap: 8, paddingBottom: 4 },
   drinkTypeChip: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.card, borderRadius: 20, borderWidth: 1.5, borderColor: COLORS.border, paddingVertical: 8, paddingHorizontal: 12 },
   drinkTypeChipSelected: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  drinkTypeEmoji: { fontSize: 15 },
+  drinkTypeIcon: { width: 20, height: 20 },
   drinkTypeLabel: { color: COLORS.text, fontSize: 13, fontWeight: '600' },
   drinkTypeLabelSelected: { color: COLORS.onPrimary },
   drinkTypeHint: { color: COLORS.textMuted, fontSize: 12, marginTop: 6, marginBottom: 4 },
   cupChoiceSelected: { backgroundColor: '#E1F1FF', borderWidth: 3 },
   cupSelectedCheck: { position: 'absolute', top: 6, right: 8, color: COLORS.primaryDark, fontWeight: '800', fontSize: 12 },
-  cupEmoji: { fontSize: 19 },
+  cupIcon: { width: 24, height: 24 },
   cupName: { fontSize: 11, fontWeight: '700', color: COLORS.text, marginTop: 3, maxWidth: 72 },
   cupMl: { fontSize: 10, color: COLORS.textMuted, marginTop: 2 },
   typeRow: { flexDirection: 'row', gap: 8 },

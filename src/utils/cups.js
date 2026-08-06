@@ -7,10 +7,10 @@ export const CUP_MIN_ML = 1;
 export const CUP_MAX_ML = 5000;
 
 export const DEFAULT_CUPS = [
-  { id: 'default-small', name: 'Small glass', amountMl: 150, color: '#60A5FA', emoji: '🥃' },
-  { id: 'default-glass', name: 'Glass', amountMl: 250, color: '#1E90FF', emoji: '🥤' },
-  { id: 'default-mug', name: 'Mug', amountMl: 350, color: '#0B5ED7', emoji: '☕' },
-  { id: 'default-bottle', name: 'Bottle', amountMl: 500, color: '#0B2545', emoji: '🍶' },
+  { id: 'default-small', name: 'Small glass', amountMl: 150, color: '#60A5FA', emoji: '🥃', drinkType: 'water', iconKey: 'small-glass' },
+  { id: 'default-glass', name: 'Glass', amountMl: 250, color: '#1E90FF', emoji: '🥤', drinkType: 'water', iconKey: 'small-glass' },
+  { id: 'default-mug', name: 'Mug', amountMl: 350, color: '#0B5ED7', emoji: '☕', drinkType: 'water', iconKey: 'travel-mug' },
+  { id: 'default-bottle', name: 'Bottle', amountMl: 500, color: '#0B2545', emoji: '🍶', drinkType: 'water', iconKey: 'water-bottle' },
 ];
 
 export const CUP_COLOR_PALETTE = [
@@ -27,11 +27,13 @@ function safeParse(raw, fallback) {
   }
 }
 
+const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
+
 function sanitiseCup(cup) {
   if (!cup || typeof cup !== 'object') return null;
   const name = typeof cup.name === 'string' ? cup.name.trim().slice(0, 40) : '';
   const amountMl = normalisePositiveMl(cup.amountMl, null, CUP_MIN_ML, CUP_MAX_ML);
-  const color = CUP_COLOR_PALETTE.includes(cup.color) ? cup.color : CUP_COLOR_PALETTE[0];
+  const color = typeof cup.color === 'string' && HEX_COLOR_PATTERN.test(cup.color) ? cup.color : CUP_COLOR_PALETTE[0];
   if (!name || !amountMl) return null;
   return {
     id: typeof cup.id === 'string' && cup.id ? cup.id : `${Date.now()}-${Math.random()}`,
@@ -40,6 +42,7 @@ function sanitiseCup(cup) {
     color,
     emoji: typeof cup.emoji === 'string' && cup.emoji ? cup.emoji : '🥤',
     drinkType: isValidDrinkType(cup.drinkType) ? cup.drinkType : 'water',
+    iconKey: typeof cup.iconKey === 'string' && cup.iconKey ? cup.iconKey : null,
   };
 }
 
@@ -50,7 +53,7 @@ async function getSavedCups() {
     const parsed = safeParse(raw, null);
     if (!Array.isArray(parsed)) return null;
     const cups = parsed.map(sanitiseCup).filter(Boolean);
-    return cups.length ? cups : null;
+    return cups;
   } catch (_error) {
     return null;
   }
@@ -64,8 +67,8 @@ async function saveCups(cups) {
   await AsyncStorage.setItem(CUPS_KEY, JSON.stringify(cups));
 }
 
-function validateCupInput({ name, amountMl, color, emoji = '🥤', drinkType = 'water' }) {
-  const cup = sanitiseCup({ id: 'pending', name, amountMl, color, emoji, drinkType });
+function validateCupInput({ name, amountMl, color, emoji = '🥤', drinkType = 'water', iconKey = null }) {
+  const cup = sanitiseCup({ id: 'pending', name, amountMl, color, emoji, drinkType, iconKey });
   if (!cup) throw new Error(`Enter a cup name and a size between ${CUP_MIN_ML}ml and ${CUP_MAX_ML}ml.`);
   return cup;
 }
@@ -92,10 +95,6 @@ export async function updateCup(id, changes) {
 export async function deleteCup(id) {
   const cups = await getCups();
   const updated = cups.filter((cup) => cup.id !== id);
-  if (!updated.length) {
-    await AsyncStorage.removeItem(CUPS_KEY);
-    return DEFAULT_CUPS;
-  }
   await saveCups(updated);
   return updated;
 }

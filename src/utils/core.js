@@ -89,14 +89,23 @@ function integer(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+// Reminder interval now supports 0.5-hour steps (e.g. 1.5, 2, 2.5) rather
+// than only whole hours — rounds to the nearest half hour so stray decimal
+// input (e.g. from a text field) still lands on a clean step.
+function halfHourStep(value) {
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.round(parsed * 2) / 2;
+}
+
 export function validateReminderSettings(input = {}) {
-  const intervalHours = integer(input.intervalHours);
+  const intervalHours = halfHourStep(input.intervalHours);
   const startHour = integer(input.startHour);
   const endHour = integer(input.endHour);
   const servingMl = integer(input.servingMl ?? DEFAULT_REMINDER_SETTINGS.servingMl);
 
-  if (intervalHours == null || intervalHours < 1 || intervalHours > 12) {
-    return { valid: false, error: 'Reminder interval must be from 1 to 12 hours.' };
+  if (intervalHours == null || intervalHours < 0.5 || intervalHours > 12) {
+    return { valid: false, error: 'Reminder interval must be from 0.5 to 12 hours.' };
   }
   if (startHour == null || startHour < 0 || startHour > 23) {
     return { valid: false, error: 'Start hour must be from 0 to 23.' };

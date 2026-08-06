@@ -2,9 +2,8 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
-import { formatVolume } from '../utils/units';
 
-export default function ProgressRing({ percent, sizeMl, goalMl, unit = 'ml', size = 220, strokeWidth = 18 }) {
+export default function ProgressRing({ percent, size = 220, strokeWidth = 18 }) {
   const { colors: COLORS } = useTheme();
   const styles = useMemo(() => makeStyles(COLORS), [COLORS]);
   const radius = (size - strokeWidth) / 2;
@@ -38,9 +37,7 @@ export default function ProgressRing({ percent, sizeMl, goalMl, unit = 'ml', siz
           origin={`${size / 2}, ${size / 2}`}
         />
       </Svg>
-      <View style={styles.centerText}>
-        <Text style={styles.mlText}>{formatVolume(sizeMl, unit)}</Text>
-        <Text style={styles.goalText}>of {formatVolume(goalMl, unit)}</Text>
+      <View style={styles.percentWrap}>
         <Text style={styles.percentText}>{Math.max(0, Math.round(safePercent))}%</Text>
       </View>
     </View>
@@ -48,8 +45,15 @@ export default function ProgressRing({ percent, sizeMl, goalMl, unit = 'ml', siz
 }
 
 const makeStyles = (COLORS) => StyleSheet.create({
-  centerText: { position: 'absolute', alignItems: 'center' },
-  mlText: { fontSize: 28, fontWeight: '800', color: COLORS.text },
-  goalText: { fontSize: 13, color: COLORS.textMuted, marginTop: 2 },
-  percentText: { fontSize: 15, fontWeight: '700', color: COLORS.primary, marginTop: 6 },
+  percentWrap: { position: 'absolute', bottom: 14, alignItems: 'center' },
+  percentText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.primary,
+    backgroundColor: COLORS.card,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
 });

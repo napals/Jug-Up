@@ -96,7 +96,8 @@ async function scheduleStaticReminders(validSettings) {
   const scheduledIds = [];
 
   for (let i = 0; i < hours.length; i += 1) {
-    const hour = hours[i];
+    const hour = Math.floor(hours[i]);
+    const minute = Math.round((hours[i] - hour) * 60);
     const message = REMINDER_MESSAGES[i % REMINDER_MESSAGES.length];
     // eslint-disable-next-line no-await-in-loop
     const id = await Notifications.scheduleNotificationAsync({
@@ -104,7 +105,7 @@ async function scheduleStaticReminders(validSettings) {
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour,
-        minute: 0,
+        minute,
         ...(Platform.OS === 'android' ? { channelId: 'reminders' } : {}),
       },
     });
@@ -114,12 +115,38 @@ async function scheduleStaticReminders(validSettings) {
   return scheduledIds;
 }
 
+function pick(options) {
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+// 15 varied, upbeat reminder templates. Deliberately vague on quantity/
+// container ("a sip", "a drink") rather than naming a specific amount or
+// vessel like "a bottle" — a reminder shouldn't read as a directive to
+// consume a specific volume right now.
+const REMINDER_TEMPLATES = [
+  (ml) => `${ml}ml left today — every little sip adds up 💧`,
+  (ml) => `${ml}ml to go. You've got this.`,
+  (ml) => `A quick drink now would be perfect. ${ml}ml left today.`,
+  (ml) => `Time for a top-up 💦 ${ml}ml left to hit your goal.`,
+  (ml) => `${ml}ml left today. Your body will thank you for a drink right now.`,
+  (ml) => `How about a refreshing sip? ${ml}ml left today 💧`,
+  (ml) => `Small sips, big results. ${ml}ml left today.`,
+  (ml) => `${ml}ml left today. A little water goes a long way.`,
+  (ml) => `Stay on track — ${ml}ml left, and you're doing great 💧`,
+  (ml) => `A splash of water now keeps you going 💦 ${ml}ml left today.`,
+  (ml) => `${ml}ml left today. Treat yourself to a drink.`,
+  (ml) => `Keep the momentum going. ${ml}ml left today.`,
+  (ml) => `${ml}ml left. A mindful sip can make all the difference 💧`,
+  (ml) => `Feeling good? A drink now helps keep it that way. ${ml}ml left today.`,
+  (ml) => `${ml}ml left today. You're closer than you think.`,
+];
+
 async function scheduleDynamicPlan(plan, scheduledIds) {
   const remainingCapacity = Math.max(MAX_DYNAMIC_SCHEDULED - scheduledIds.length, 0);
   for (const item of plan.slice(0, remainingCapacity)) {
     const body = item.remainingMl === item.suggestedMl
       ? `Only ${item.remainingMl}ml left today — one last drink can finish your goal.`
-      : `${item.remainingMl}ml left today. Aim for about ${item.suggestedMl}ml now.`;
+      : pick(REMINDER_TEMPLATES)(item.remainingMl);
     // eslint-disable-next-line no-await-in-loop
     const id = await Notifications.scheduleNotificationAsync({
       content: {

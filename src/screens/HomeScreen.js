@@ -1,9 +1,11 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { Dimensions, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ProgressRing from '../components/ProgressRing';
 import { ENCOURAGEMENT, EMPTY_STATE_MESSAGES, progressMessage, randomFrom, streakMessage } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import { DRINK_ICONS } from '../constants/drinkIcons';
+import { PRESET_ICONS } from '../constants/presetIcons';
 import { estimateCompletionTime } from '../utils/analytics';
 import {
   calculateStreak,
@@ -170,7 +172,12 @@ export default function HomeScreen({ navigation }) {
               <HydrationMascot percent={percent} size={230} themeId={theme.id} colors={colors} />
             </View>
           ) : null}
-          <ProgressRing percent={percent} sizeMl={todayMl} goalMl={targetGoalMl} unit={unit} />
+          <ProgressRing percent={percent} />
+        </View>
+
+        <View style={styles.volumeWrap}>
+          <Text style={styles.volumeText}>{formatVolume(todayMl, unit)}</Text>
+          <Text style={styles.volumeGoalText}>of {formatVolume(targetGoalMl, unit)}</Text>
         </View>
 
         <Text style={styles.message}>{message || progressMessage(percent)}</Text>
@@ -185,7 +192,7 @@ export default function HomeScreen({ navigation }) {
               style={[styles.addButton, { borderColor: cup.color, borderWidth: 2 }]}
               onPress={() => handleAdd(cup)}
             >
-              <Text style={styles.addButtonEmoji}>{cup.emoji || '🥤'}</Text>
+              <Image source={PRESET_ICONS[cup.iconKey] || DRINK_ICONS[cup.drinkType] || DRINK_ICONS.water} style={styles.addButtonIcon} resizeMode="contain" />
               <Text style={[styles.addButtonText, { color: cup.color }]}>{cup.name}</Text>
               <Text style={styles.addButtonMl}>{formatVolume(cup.amountMl, unit)}</Text>
             </TouchableOpacity>
@@ -227,6 +234,9 @@ const makeStyles = (colors) => StyleSheet.create({
   weatherSub: { fontSize: 12, color: '#991B1B', marginTop: 2 },
   errorText: { color: '#B91C1C', marginHorizontal: 24, textAlign: 'center', fontSize: 13 },
   ringWrap: { width: 220, height: 220, marginVertical: 12, alignItems: 'center', justifyContent: 'center' },
+  volumeWrap: { alignItems: 'center', marginTop: 2, marginBottom: 8 },
+  volumeText: { fontSize: 28, fontWeight: '800', color: colors.text },
+  volumeGoalText: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
   mascotLayer: {
     position: 'absolute', top: -5, left: -5,
     width: 230, height: 230,
@@ -243,7 +253,7 @@ const makeStyles = (colors) => StyleSheet.create({
     alignItems: 'center', width: 96, shadowColor: '#000', shadowOpacity: 0.06,
     shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
-  addButtonEmoji: { fontSize: 20, marginBottom: 4 },
+  addButtonIcon: { width: 26, height: 26, marginBottom: 4 },
   addButtonText: { fontWeight: '700', fontSize: 12, textAlign: 'center' },
   addButtonMl: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
   manageCupsLink: { marginTop: 16 },

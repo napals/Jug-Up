@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useTheme } from '../context/ThemeContext';
 import { lookupProductByBarcode } from '../utils/barcodeLookup';
@@ -7,6 +7,7 @@ import { logEntry, normalisePositiveMl } from '../utils/storage';
 import { refreshReminderSchedule } from '../utils/notifications';
 import { formatVolume, mlToUnitInput, unitInputToMl, unitLabel } from '../utils/units';
 import { DRINK_TYPES } from '../constants/drinkTypes';
+import { DRINK_ICONS } from '../constants/drinkIcons';
 
 export default function ScanScreen({ navigation }) {
   const { colors: COLORS, prefs, premium } = useTheme();
@@ -134,7 +135,7 @@ export default function ScanScreen({ navigation }) {
                     style={[styles.drinkTypeChip, drinkType === d.id && styles.drinkTypeChipSelected]}
                     onPress={() => { setDrinkType(d.id); setAutoDetected(false); }}
                   >
-                    <Text style={styles.drinkTypeEmoji}>{d.emoji}</Text>
+                    <Image source={DRINK_ICONS[d.id]} style={styles.drinkTypeIcon} resizeMode="contain" />
                     <Text style={[styles.drinkTypeLabel, drinkType === d.id && styles.drinkTypeLabelSelected]}>{d.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -164,7 +165,7 @@ export default function ScanScreen({ navigation }) {
                     style={[styles.drinkTypeChip, drinkType === d.id && styles.drinkTypeChipSelected]}
                     onPress={() => setDrinkType(d.id)}
                   >
-                    <Text style={styles.drinkTypeEmoji}>{d.emoji}</Text>
+                    <Image source={DRINK_ICONS[d.id]} style={styles.drinkTypeIcon} resizeMode="contain" />
                     <Text style={[styles.drinkTypeLabel, drinkType === d.id && styles.drinkTypeLabelSelected]}>{d.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -205,7 +206,7 @@ const makeStyles = (COLORS) => StyleSheet.create({
   drinkTypeStrip: { gap: 8, paddingHorizontal: 4 },
   drinkTypeChip: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.card, borderRadius: 20, borderWidth: 1.5, borderColor: COLORS.border, paddingVertical: 8, paddingHorizontal: 12 },
   drinkTypeChipSelected: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  drinkTypeEmoji: { fontSize: 15 },
+  drinkTypeIcon: { width: 20, height: 20 },
   drinkTypeLabel: { color: COLORS.text, fontSize: 13, fontWeight: '600' },
   drinkTypeLabelSelected: { color: COLORS.onPrimary },
 });

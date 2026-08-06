@@ -68,6 +68,26 @@ test('validates and computes reminder hours', () => {
   assert.equal(validateReminderSettings({ intervalHours: 2, startHour: 20, endHour: 8 }).valid, false);
 });
 
+test('reminder interval supports half-hour steps, not just whole hours', () => {
+  const half = validateReminderSettings({ enabled: true, intervalHours: 1.5, startHour: 8, endHour: 12 });
+  assert.equal(half.valid, true);
+  assert.equal(half.settings.intervalHours, 1.5);
+  assert.deepEqual(computeReminderHours(half.settings), [8, 9.5, 11]);
+
+  // the smallest allowed step is 0.5 hours
+  const min = validateReminderSettings({ enabled: true, intervalHours: 0.5, startHour: 8, endHour: 9 });
+  assert.equal(min.valid, true);
+  assert.deepEqual(computeReminderHours(min.settings), [8, 8.5, 9]);
+
+  // below 0.5 is still rejected (0.2 rounds down to 0, not up to 0.5)
+  assert.equal(validateReminderSettings({ intervalHours: 0.2, startHour: 8, endHour: 20 }).valid, false);
+
+  // stray decimal input rounds to the nearest half hour rather than failing
+  const rounded = validateReminderSettings({ enabled: true, intervalHours: 1.7, startHour: 8, endHour: 20 });
+  assert.equal(rounded.valid, true);
+  assert.equal(rounded.settings.intervalHours, 1.5);
+});
+
 test('handles date boundaries and progress copy', () => {
   assert.equal(addDays('2026-01-01', -1), '2025-12-31');
   assert.match(dateKey(new Date('2026-07-14T12:00:00')), /^2026-07-14$/);
